@@ -1,0 +1,13 @@
+//
+//
+
+#ifndef AMKY_DAEMON_DOWNLOADMANAGER_H
+#define AMKY_DAEMON_DOWNLOADMANAGER_H
+
+
+class DownloadManager {
+
+};
+
+
+#endif //AMKY_DAEMON_DOWNLOADMANAGER_H
