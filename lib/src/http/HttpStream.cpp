@@ -2,6 +2,7 @@
 //
 
 #include "HttpStream.hpp"
+#include <exceptions/AMKyException>
 #include <type-definitions.hpp>
 
 

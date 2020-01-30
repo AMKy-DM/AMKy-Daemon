@@ -10,13 +10,13 @@ struct RangeModel {
     unsigned long end;
 };
 
-#define LOG_TAG AMKy
+#define LOG_TAG "AMKy"
 
-extern void log(wchar_t* tag, wchar_t* log);
-extern void log(char* tag, char* log);
+extern void log(const wchar_t* tag, const wchar_t* log);
+extern void log(const char* tag, const char* log);
 
-extern void log(wchar_t* tag, wchar_t* className, char* functionName, wchar_t* log);
-extern void log(char* tag, char* className, char* functionName, char* log);
+extern void log(const wchar_t* tag, const wchar_t* className, const wchar_t* functionName, const wchar_t* log);
+extern void log(const char* tag, const char* className, const char* functionName, const char* log);
 
 
 #endif //AMKY_DAEMON__TYPE_DEFINITIONS_HPP
