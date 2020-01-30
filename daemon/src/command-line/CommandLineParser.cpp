@@ -2,6 +2,9 @@
 //
 
 #include "CommandLineParser.hpp"
+#include <TaskScheduler.hpp>
+
+using namespace CppLib;
 
 
 CommandLineParser::CommandLineParser(int argc, char **argv) {
@@ -11,6 +14,8 @@ CommandLineParser::CommandLineParser(int argc, char **argv) {
 
 int CommandLineParser::execute() {
 
-    return 0;
+    TaskScheduler taskScheduler;
+
+    return taskScheduler.captureCurrentThread();
 
 }

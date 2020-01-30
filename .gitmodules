@@ -1,0 +1,3 @@
+[submodule "lib/src/lib"]
+	path = lib/src/lib
+	url = git@github.com:amkherad/CppLib.git

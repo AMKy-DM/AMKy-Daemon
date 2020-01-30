@@ -1,14 +1,12 @@
 
 set(LIBRARY_NAME "${PROJECT_NAME}-lib")
 
+add_subdirectory(src/lib)
+
 add_library(
         "${LIBRARY_NAME}" SHARED
 
-        src/lib/type-definitions.hpp
-        src/lib/String.hpp
-        src/lib/String.cpp
-        src/lib/Buffer.hpp
-        src/lib/Buffer.cpp
+        src/type-definitions.hpp
 
         src/exceptions/AMKyException.hpp
         src/exceptions/AMKyException.cpp
@@ -29,6 +27,8 @@ add_library(
         src/DaemonHost.hpp
         src/DaemonHost.cpp
 )
+
+target_link_libraries("${LIBRARY_NAME}" CppLib)
 
 target_include_directories(
         "${LIBRARY_NAME}" PUBLIC

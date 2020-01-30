@@ -6,12 +6,19 @@
 
 #include "lib/type-definitions.hpp"
 
+class TaskScheduler;
+
 class DaemonHost {
 
 private:
+    TaskScheduler* _scheduler;
     bool _shouldContinue;
 
 public:
+
+    DaemonHost();
+
+    ~DaemonHost();
 
     void start();
 
