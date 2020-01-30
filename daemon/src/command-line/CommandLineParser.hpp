@@ -6,15 +6,16 @@
 
 
 #include <String.hpp>
+#include <string>
 
 class CommandLineParser {
 private:
-    String _commands{};
+    std::string _commands{};
 
 public:
     CommandLineParser(int argc, char **argv);
 
-    ~CommandLineParser();
+    ~CommandLineParser() = default;
 
     int execute();
 

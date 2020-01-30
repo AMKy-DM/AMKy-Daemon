@@ -8,6 +8,15 @@
 
 class DaemonHost {
 
+private:
+    bool _shouldContinue;
+
+public:
+
+    void start();
+
+    void stop();
+
 };
 
 
