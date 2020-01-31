@@ -1,7 +1,7 @@
 
 set(LIBRARY_NAME "${PROJECT_NAME}-lib")
 
-add_subdirectory(src/lib)
+add_subdirectory(src/lib/core)
 
 add_library(
         "${LIBRARY_NAME}" SHARED
