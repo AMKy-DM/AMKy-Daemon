@@ -1,12 +1,11 @@
-//
-//
-
 #include "command-line/CommandLineParser.hpp"
+#include "command-line/CommandDispatcher.hpp"
 
-int main(int argc, char **argv) {
-    CommandLineParser clp(argc, argv);
+int main(int argc, char **argv)
+{
+    CommandLineParser const clp(argc, argv);
 
-
-    return clp.execute();
-
+    CommandDispatcher const cd;
+    
+    return cd.dispatch(const_cast<CommandLineParser&> (clp));
 }

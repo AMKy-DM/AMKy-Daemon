@@ -1,24 +1,38 @@
 //
 //
 
-#ifndef AMKY_DAEMON_COMMANDLINEPARSER_H
-#define AMKY_DAEMON_COMMANDLINEPARSER_H
+#ifndef AMKY_DAEMON_COMMAND_LINE_PARSER_H
+#define AMKY_DAEMON_COMMAND_LINE_PARSER_H
 
+#include <string>
+#include <vector>
+#include <array>
 
-#include <String.hpp>
+using namespace std;
 
 class CommandLineParser {
 private:
-    String _commands{};
+    wstring _currentDirectory;
+    wstring _command;
+
+    bool _isCommandAvailable;
+
+    vector<wstring> _arguments;
 
 public:
     CommandLineParser(int argc, char **argv);
 
     ~CommandLineParser();
 
-    int execute();
+    wstring getCurrentDirectory() const;
+
+    bool isCommandAvailable() const;
+
+    wstring getCommand() const;
+
+    vector<wstring> getParameters() const;
 
 };
 
 
-#endif //AMKY_DAEMON_COMMANDLINEPARSER_H
+#endif //AMKY_DAEMON_COMMAND_LINE_PARSER_H
