@@ -29,6 +29,7 @@ public:
     bool isCommandAvailable() const;
 
     wstring getCommand() const;
+    bool isCommand(const wchar_t* cmd) const;
 
     vector<wstring> getParameters() const;
 

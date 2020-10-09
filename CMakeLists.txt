@@ -10,3 +10,4 @@ add_subdirectory(daemon)
 include(CTest)
 
 add_test("test1" "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}")
+

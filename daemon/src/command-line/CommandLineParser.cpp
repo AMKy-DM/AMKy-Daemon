@@ -82,3 +82,8 @@ vector<wstring> CommandLineParser::getParameters() const
 
     return _arguments;
 }
+
+bool CommandLineParser::isCommand(const wchar_t* cmd) const {
+    
+    return _command.compare(cmd) == 0;
+}

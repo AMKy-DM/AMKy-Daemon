@@ -1,5 +1,9 @@
 
-#configure_file(${CMAKE_SOURCE_DIR}/cmake/config.h.cmake ${CMAKE_CURRENT_BINARY_DIR}/config.hpp)
+configure_file(
+        src/config.hpp
+        ${CMAKE_BINARY_DIR}/generated/config.hpp
+)
+include_directories( ${CMAKE_BINARY_DIR}/generated/ )
 
 include_directories(
         "${CMAKE_CURRENT_SOURCE_DIR}/src"
