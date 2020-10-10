@@ -4,29 +4,37 @@
 #ifndef CPPLIB_ASYNCTASK_HPP
 #define CPPLIB_ASYNCTASK_HPP
 
-namespace CppLib {
 
-    template <typename T>
-    class AsyncTask {
+class AsyncTask
+{
 
-    public:
-        AsyncTask();
+public:
+    AsyncTask();
 
-        ~AsyncTask();
+    ~AsyncTask();
+
+    bool isFinished();
+
+    bool isError();
+
+    void* wait();
+
+    void* result();
+};
 
 
-        bool isFinished();
+template <typename T>
+class AsyncTask : private AsyncTask {
 
-        bool isError();
+public:
+    AsyncTask();
+
+    ~AsyncTask();
 
 
-        T wait();
+    T wait();
 
-
-        T result();
-
-    };
-
+    T result();
 }
 
 #endif //CPPLIB_ASYNCTASK_HPP

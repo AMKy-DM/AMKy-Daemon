@@ -4,66 +4,62 @@
 #ifndef CPPLIB_TASKSCHEDULER_HPP
 #define CPPLIB_TASKSCHEDULER_HPP
 
-#include <LinkedList.hpp>
 #include <memory>
+#include <vector>
 
-namespace CppLib {
+#include "AsyncTask.hpp"
 
-    class AsyncTask;
-    class ThreadPool;
+class ThreadPool;
 
-    class TaskScheduler {
-    private:
-        /**
+class TaskScheduler
+{
+private:
+    /**
          * Determines if captureCurrentThread method should continue to block the calling thread.
          *
          * @remarks Because this field is has been double checked in captureCurrentThread method,
          *          it's been marked as volatile to force compiler to read the value from memory instead of caching it in a register.
          */
-        volatile bool _continue;
+    volatile bool _continue;
 
-        ThreadPool* _threadPool;
+    std::shared_ptr<ThreadPool> _threadPool;
 
-        LinkedList<AsyncTask*>* _tasks;
+    std::vector<AsyncTask> _taskQueue;
+    std::unique_ptr<Mutex> _taskQueueLock;
 
-    public:
-        explicit TaskScheduler(const ThreadPool& threadPool);
+public:
+    explicit TaskScheduler(const std::shared_ptr<ThreadPool> &threadPool);
 
-        ~TaskScheduler();
+    ~TaskScheduler();
 
-
-        /**
+    /**
          * Captures the calling thread to execute pending async tasks in task queue on the calling thread. (mainly the main thread)
          */
-        int captureCurrentThread();
+    int captureCurrentThread();
 
-        /**
+    /**
          * Releases the captured thread.
          */
-        void release();
+    void release();
 
-
-        /**
+    /**
          * Pops one task from the async task queue and executes it on the calling thread.
          * @return true if a task was executed, otherwise false.
          */
-        bool pullAndExecute();
+    bool pullAndExecute();
 
-        /**
+    /**
          * Determines whether there are any more async tasks to be executed or not.
          * @return
          */
-        bool isEmpty();
+    bool isEmpty();
 
-        /**
+    /**
          * Schedules a new AsyncTask for async execution in the current TaskScheduler.
          * @param fn
          * @param state
          */
-        void schedule(const AsyncTask& asyncTask);
-
-    };
-
-}
+    void schedule(const AsyncTask &asyncTask);
+};
 
 #endif //CPPLIB_TASKSCHEDULER_HPP

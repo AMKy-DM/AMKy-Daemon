@@ -4,35 +4,29 @@
 #ifndef CPPLIB_THREADPOOLJOBINFO_HPP
 #define CPPLIB_THREADPOOLJOBINFO_HPP
 
-
 #include "ThreadPool.hpp"
 
-namespace CppLib {
+typedef void ThreadPoolCallback();
 
-    typedef void ThreadPoolCallback();
+typedef void ThreadPoolCallbackWithState(void *state);
 
-    typedef void ThreadPoolCallbackWithState(void *state);
+class ThreadPoolJobInfo
+{
+private:
+    ThreadPoolCallback *_voidCallback;
 
+    ThreadPoolCallbackWithState *_stateCallback;
 
-    class ThreadPoolJobInfo {
-    private:
-        ThreadPoolCallback *_voidCallback;
+    void *_state;
 
-        ThreadPoolCallbackWithState *_stateCallback;
+    bool _isWithState;
 
-        void *_state;
+public:
+    explicit ThreadPoolJobInfo(ThreadPoolCallback *callback);
 
-        bool _isWithState;
+    explicit ThreadPoolJobInfo(ThreadPoolCallbackWithState *callback, void *state);
 
-    public:
-        explicit ThreadPoolJobInfo(ThreadPoolCallback* callback);
-
-        explicit ThreadPoolJobInfo(ThreadPoolCallbackWithState* callback, void* state);
-
-        void execute();
-
-    };
-
-}
+    void execute();
+};
 
 #endif //CPPLIB_THREADPOOLJOBINFO_HPP

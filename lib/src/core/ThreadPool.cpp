@@ -2,160 +2,167 @@
 //
 
 #include "ThreadPool.hpp"
-#include <Thread.hpp>
-#include <data/LinkedList.hpp>
-#include <ThreadPoolJobInfo.hpp>
-#include <Monitor.hpp>
-
-namespace CppLib {
+#include "Thread.hpp"
+#include "ThreadPoolJobInfo.hpp"
+#include "Monitor.hpp"
 
 
-    ThreadPool::ThreadPool() {
+ThreadPool::ThreadPool()
+{
 
-        _continue = true;
+    _continue = true;
 
-        _workerThreads = std::make_unique<LinkedList<Thread *>>();
-        _jobs = std::make_unique<LinkedList<ThreadPoolJobInfo *>>();
-        _exclusiveLock = std::make_unique<Mutex>();
+    _jobQueueLock = std::make_unique<Mutex>();
 
-        _minWorkerThreads = 0;
-        _maxWorkerThreads = 100;
+    _minWorkerThreads = 0;
+    _maxWorkerThreads = 100;
+}
 
+ThreadPool::~ThreadPool()
+{
+
+    this->stop();
+
+    for (int i = 0; i < _jobs->count(); i++)
+    {
+
+        ThreadPoolJobInfo *job = _jobs->at(i);
+
+        delete job;
     }
 
-    ThreadPool::~ThreadPool() {
+    for (int i = 0; i < _workerThreads->count(); i++)
+    {
 
-        this->stop();
+        Thread *thread = _workerThreads->get(i);
 
-        for (int i = 0; i < _jobs->count(); i++) {
+        delete thread;
+    }
+}
 
-            ThreadPoolJobInfo *job = _jobs->get(i);
+void ThreadPool::queueWorkItem(ThreadPoolCallback *callback)
+{
 
-            delete job;
-        }
+    auto job = new ThreadPoolJobInfo(callback);
 
-        for (int i = 0; i < _workerThreads->count(); i++) {
+    _jobQueueLock->waitOne();
 
-            Thread *thread = _workerThreads->get(i);
+    _jobQueue->append(job);
 
-            delete thread;
-        }
+    _jobQueueLock->release();
 
+    Monitor::pulseOne(*this->_conditionalLock);
+}
+
+void ThreadPool::queueWorkItem(ThreadPoolCallbackWithState *callback, void *state)
+{
+
+    auto job = new ThreadPoolJobInfo(callback, state);
+
+    _jobQueueLock->waitOne();
+
+    _jobQueue->append(job);
+
+    _jobQueueLock->release();
+
+    Monitor::pulseOne(*this->_conditionalLock);
+}
+
+void ThreadPool::setWorkerThreads(int minWorkerThreads, int maxWorkerThreads)
+{
+
+    auto threads = _threadsCount;
+
+    auto threadsToBeCreated = 0;
+
+    if (threads < minWorkerThreads)
+    {
+
+        threadsToBeCreated = minWorkerThreads - threads;
     }
 
-    void ThreadPool::queueWorkItem(ThreadPoolCallback *callback) {
+    if (threadsToBeCreated > 0)
+    {
+        for (int i = 0; i < threadsToBeCreated; i++)
+        {
+            Thread *thread = this->spawnThread();
 
-        _exclusiveLock->waitOne();
+            _workerThreadsLock->waitOne();
 
-        auto job = new ThreadPoolJobInfo(callback);
+            _workerThreads->append(thread);
 
-        _jobs->append(job);
+            _threadsCount++;
 
-        _exclusiveLock->release();
-
-        Monitor::pulseOne(*this->_conditionalLock);
-
-    }
-
-    void ThreadPool::queueWorkItem(ThreadPoolCallbackWithState *callback, void *state) {
-
-        _exclusiveLock->waitOne();
-
-        auto job = new ThreadPoolJobInfo(callback, state);
-
-        _jobs->append(job);
-
-        _exclusiveLock->release();
-
-        Monitor::pulseOne(*this->_conditionalLock);
-
-    }
-
-    void ThreadPool::setWorkerThreads(int minWorkerThreads, int maxWorkerThreads) {
-
-        auto threads = _workerThreads->count();
-
-        auto threadsToBeCreated = 0;
-
-        if (threads < minWorkerThreads) {
-
-            threadsToBeCreated = minWorkerThreads - threads;
-        }
-
-        if (threadsToBeCreated > 0) {
-
-            for (int i = 0; i < threadsToBeCreated; i++) {
-
-                Thread *thread = this->createThread();
-
-                _workerThreads->append(thread);
-
-            }
-        }
-
-        this->_minWorkerThreads = minWorkerThreads;
-        this->_maxWorkerThreads = maxWorkerThreads;
-    }
-
-    Thread *ThreadPool::createThread() {
-
-        auto thread = new Thread(ExecuteThread, this);
-
-        return thread;
-    }
-
-    void ThreadPool::ExecuteThread(void *stt) {
-
-        auto that = static_cast<ThreadPool *>(stt);
-
-        while (that->_continue) {
-
-            ThreadPoolJobInfo *jobInfo = nullptr;
-
-            that->_exclusiveLock->waitOne();
-
-            if (that->_jobs->count() > 0) {
-
-                jobInfo = that->_jobs->pop();
-
-            }
-
-            that->_exclusiveLock->release();
-
-
-            if (jobInfo != nullptr) {
-
-                jobInfo->execute();
-
-            }
-
-            if (!that->_continue) {
-
-                return;
-
-            }
-
-            //that->_parkedThreads
-
-            Monitor::wait(*that->_conditionalLock);
-
+            _workerThreadsLock->release();
         }
     }
 
-    void ThreadPool::stop() {
+    this->_minWorkerThreads = minWorkerThreads;
+    this->_maxWorkerThreads = maxWorkerThreads;
+}
 
-        //TODO: synchronization required.
-        _continue = false;
+Thread *ThreadPool::spawnThread()
+{
 
-        Monitor::pulseAll(*this->_conditionalLock);
+    auto thread = new Thread(_executeThread, this);
 
-        for (int i = 0; i < _workerThreads->count(); i++) {
+    return thread;
+}
 
-            Thread *thread = _workerThreads->get(i);
+void ThreadPool::stop()
+{
 
-            thread->join();
+    //TODO: synchronization required.
+    _continue = false;
 
+    Monitor::pulseAll(*this->_conditionalLock);
+
+    for (int i = 0; i < _workerThreads->count(); i++)
+    {
+
+        Thread *thread = _workerThreads->get(i);
+
+        thread->join();
+    }
+}
+
+
+
+
+
+
+void _executeThread(void *stt)
+{
+
+    auto that = static_cast<ThreadPool *>(stt);
+
+    while (that->_continue)
+    {
+
+        ThreadPoolJobInfo *jobInfo = nullptr;
+
+        that->_jobQueueLock->waitOne();
+
+        if (that->_jobQueue->count() > 0)
+        {
+
+            jobInfo = that->_jobQueue->pop();
         }
 
+        that->_jobQueueLock->release();
+
+        if (jobInfo != nullptr)
+        {
+
+            jobInfo->execute();
+        }
+
+        if (!that->_continue)
+        {
+
+            return;
+        }
+
+        Monitor::wait(*that->_conditionalLock);
     }
 }

@@ -6,8 +6,6 @@
 #include <Thread.hpp>
 #include <ThreadPool.hpp>
 
-namespace CppLib {
-
     TaskScheduler::TaskScheduler(const ThreadPool& threadPool) {
 
         this->_continue = true;
@@ -61,5 +59,3 @@ namespace CppLib {
         this->_threadPool->queueWorkItem(asyncTask)
 
     }
-
-}

@@ -4,27 +4,34 @@
 #ifndef CPPLIB_THREAD_HPP
 #define CPPLIB_THREAD_HPP
 
-namespace CppLib {
+typedef unsigned long int pthread_t;
 
-    typedef void ThreadCallback();
-    typedef void ThreadCallbackWithState(void* state);
+typedef void ThreadCallback();
+typedef void ThreadCallbackWithState(void *state);
 
-    class Thread {
+class Thread
+{
+private:
+    pthread_t _ptr;
+    ThreadCallback* _callback;
+    ThreadCallbackWithState* _callbackWithState;
 
-    public:
-        explicit Thread(ThreadCallback* callback);
-        explicit Thread(ThreadCallbackWithState* callback, void* state);
+public:
+    explicit Thread(ThreadCallback &callback);
+    explicit Thread(ThreadCallbackWithState &callback, void *state);
 
-        void join();
 
-        static void yield();
+    void join();
 
-        static void sleep(unsigned int milliseconds);
+    void join(unsigned int milliseconds);
 
-        static void ensureInitialized(void ** ptr, void *(*initilizer)());
 
-    };
+    static void yield();
 
-}
+    static void sleep(unsigned int milliseconds);
+
+
+    void start();
+};
 
 #endif //CPPLIB_THREAD_HPP

@@ -2,58 +2,50 @@
 #define CPPLIB_THREADPOOL_HPP
 
 #include <memory>
+#include <vector>
 
-namespace CppLib {
+struct ThreadPoolJobInfo;
 
-    template <typename T>
-    class LinkedList;
+class Thread;
 
-    struct ThreadPoolJobInfo;
+class ThreadPool
+{
+private:
+    std::vector<ThreadPoolJobInfo*> _jobQueue;
+    std::unique_ptr<Mutex> _jobQueueLock;
 
-    class Thread;
+    std::vector<Thread *> _workerThreads;
+    std::unique_ptr<Mutex> _workerThreadsLock;
+    std::atomic<int> _threadsCount;
 
-    class ThreadPool {
-    private:
-        std::unique_ptr<LinkedList<ThreadPoolJobInfo*>> _jobs;
-        std::unique_ptr<Mutex> _exclusiveLock;
+    int _minWorkerThreads;
+    int _maxWorkerThreads;
 
-        std::unique_ptr<LinkedList<Thread*>> _workerThreads;
+    std::atomic<bool> _continue;
 
-        int _minWorkerThreads;
-        int _maxWorkerThreads;
+    std::unique_ptr<Monitor::ConditionalLockTarget> _conditionalLock;
 
-        std::atomic<int> _parkedThreads;
+    Thread *spawnThread();
 
-        bool _continue;
+    //static void ExecuteThread(void *state);
 
-        std::unique_ptr<Monitor::ConditionalLockTarget> _conditionalLock;
+public:
+    ThreadPool();
 
-        Thread* createThread();
+    ~ThreadPool();
 
-        static void ExecuteThread(void* state);
-
-    public:
-        ThreadPool();
-
-        ~ThreadPool();
-
-
-        /**
+    /**
          * Sets the minimum and maximum parked threads in the thread pool.
          * @param minWorkerThreads minimum parked threads.
          * @param maxWorkerThreads maximum parked threads.
          */
-        void setWorkerThreads(int minWorkerThreads, int maxWorkerThreads);
+    void setWorkerThreads(int minWorkerThreads, int maxWorkerThreads);
 
+    void stop();
 
-        void stop();
+    void queueWorkItem(ThreadPoolCallback *callback);
 
-
-        void queueWorkItem(ThreadPoolCallback *callback);
-
-        void queueWorkItem(ThreadPoolCallbackWithState *callback, void* state);
-    };
-
-}
+    void queueWorkItem(ThreadPoolCallbackWithState *callback, void *state);
+};
 
 #endif //CPPLIB_THREADPOOL_HPP
